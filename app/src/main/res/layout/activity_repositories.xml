@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:a="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	a:layout_width="match_parent"
+	a:layout_height="match_parent"
+	tools:context="com.epam.talks.github.RepositoriesActivity">
+
+	<android.support.v7.widget.RecyclerView
+		a:id="@+id/repos"
+		a:layout_margin="16dp"
+		a:layout_width="match_parent"
+		a:layout_height="match_parent"
+		app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+		tools:listitem="@layout/repo_item"
+		/>
+
+</LinearLayout>
