@@ -41,26 +41,39 @@ class LoginActivity : AppCompatActivity() {
 		val login = email.text.toString()
 		val pass = password.text.toString()
 
-		showProgress(true)
 		val auth = BasicAuthorization(login, pass)
 		val apiClient = ApiClientRx.ApiClientRxImpl()
+	showProgress(true)
+	apiClient.login(auth)
+			.flatMap { user -> apiClient.getRepositories(user.repos_url, auth) }
+			.map { list -> list.map { it.full_name } }
+			.subscribeOn(Schedulers.io())
+			.observeOn(AndroidSchedulers.mainThread())
+			.doFinally { showProgress(false) }
+			.subscribe(
+					{ list -> showRepositories(this@LoginActivity, list)    },
+					{ error -> Log.e("TAG", "Failed to show repos", error) }
+			)
+		/*showProgress(true)
 		apiClient.login(auth)
+				.flatMap {
+					val githubUser = it
+					//authStorage.save(githubUser)
+					return@flatMap apiClient.getRepositories(githubUser.repos_url, auth)
+				}
+				.map { list -> list.map { it.full_name } }
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
-				.doFinally {
+				.subscribe({ list ->
+					run {
+						showProgress(false)
+						showRepositories(this@LoginActivity, list)
+					}
+				},
+				{
 					showProgress(false)
-				}
-				.flatMap {
-					return@flatMap apiClient.getRepositories(it.repos_url, auth)
-							.subscribeOn(Schedulers.io())
-							.observeOn(AndroidSchedulers.mainThread())
-				}
-				.subscribe({
-					val list = it
-					showRepositories(this@LoginActivity, list!!.map { it -> it.full_name })
-				}, {
 					Log.e("TAG", "Failed to show repos", it)
-				})
+				})*/
 	}
 
 	private fun attemptLogin() {

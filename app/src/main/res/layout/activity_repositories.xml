@@ -3,9 +3,33 @@
 	xmlns:a="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
+	a:orientation="vertical"
 	a:layout_width="match_parent"
 	a:layout_height="match_parent"
 	tools:context="com.epam.talks.github.RepositoriesActivity">
+
+	<LinearLayout
+		a:layout_margin="8dp"
+		a:orientation="horizontal"
+		a:layout_width="match_parent"
+		a:layout_height="wrap_content">
+
+		<ImageButton
+			a:background="@null"
+			a:layout_gravity="center_vertical"
+			a:id="@+id/searchButton"
+			a:src="@android:drawable/ic_menu_search"
+			a:text="SEARCH"
+			a:layout_width="wrap_content"
+			a:layout_height="wrap_content"/>
+
+		<EditText
+			a:layout_weight="1"
+			a:id="@+id/searchQuery"
+			a:layout_width="match_parent"
+			a:layout_height="wrap_content"/>
+
+	</LinearLayout>
 
 	<android.support.v7.widget.RecyclerView
 		a:id="@+id/repos"

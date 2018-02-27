@@ -12,8 +12,16 @@ interface ApiClient {
 
 	fun login(auth: Authorization) : Deferred<GithubUser>
 	fun getRepositories(reposUrl: String, auth: Authorization) : Deferred<List<GithubRepository>>
+	fun searchRepositories(searchQuery: String) : Deferred<List<GithubRepository>>
 
 	class ApiClientImpl : ApiClient {
+
+		override fun searchRepositories(query: String): Deferred<List<GithubRepository>> = async {
+			get("https://api.github.com/search/repositories?q=${query}")
+					.jsonObject
+					.getJSONArray("items")
+					.toRepos()
+		}
 
 		override fun login(auth: Authorization): Deferred<GithubUser> = async {
 			val response = get("https://api.github.com/user", auth = auth)
