@@ -7,34 +7,33 @@ import io.mockk.use
 import khttp.get
 import khttp.responses.GenericResponse
 import khttp.structures.authorization.BasicAuthorization
-import kotlinx.coroutines.experimental.runBlocking
 import org.json.JSONObject
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert
 import org.junit.Test
 
-class ApiClientImplTest {
+
+class ApiClientRxImplTest {
 
 	private val loginJson = "{ \"login\": \"login\", \"id\": 1, \"repos_url\": \"url\", \"name\": \"name\" }"
 
 	@Test
 	fun login() {
-		val apiClientImpl = ApiClient.ApiClientImpl()
+		val apiClientImpl = ApiClientRx.ApiClientRxImpl()
 		val genericResponse = mockLoginResponse()
 
 		staticMockk("khttp.KHttp").use {
 			every { get("https://api.github.com/user", auth = any()) } returns genericResponse
 
-			runBlocking {
-				val githubUser =
-						apiClientImpl
+			val githubUser =
+					apiClientImpl
 							.login(BasicAuthorization("login", "pass"))
-							.await()
 
-				assertNotNull(githubUser)
-				assertEquals("name", githubUser.name)
-				assertEquals("url", githubUser.repos_url)
-			}
+			githubUser.subscribe({ githubUser ->
+				Assert.assertNotNull(githubUser)
+				Assert.assertEquals("name", githubUser.name)
+				Assert.assertEquals("url", githubUser.repos_url)
+			})
+
 		}
 	}
 
@@ -44,9 +43,4 @@ class ApiClientImplTest {
 		every { genericResponse.statusCode } returns 200
 		return genericResponse
 	}
-
-	@Test
-	fun getRepositories() {
-	}
-
 }

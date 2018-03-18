@@ -10,15 +10,16 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import com.epam.talks.github.model.ApiClient
 import com.epam.talks.github.model.ApiClientRx
+import com.epam.talks.github.model.SuspendingApiClient
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import khttp.structures.authorization.BasicAuthorization
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 
 class LoginActivity : AppCompatActivity() {
-
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -43,37 +44,39 @@ class LoginActivity : AppCompatActivity() {
 
 		val auth = BasicAuthorization(login, pass)
 		val apiClient = ApiClientRx.ApiClientRxImpl()
-	showProgress(true)
-	apiClient.login(auth)
-			.flatMap { user -> apiClient.getRepositories(user.repos_url, auth) }
-			.map { list -> list.map { it.full_name } }
-			.subscribeOn(Schedulers.io())
-			.observeOn(AndroidSchedulers.mainThread())
-			.doFinally { showProgress(false) }
-			.subscribe(
-					{ list -> showRepositories(this@LoginActivity, list)    },
-					{ error -> Log.e("TAG", "Failed to show repos", error) }
-			)
-		/*showProgress(true)
+		showProgress(true)
 		apiClient.login(auth)
 				.flatMap {
-					val githubUser = it
-					//authStorage.save(githubUser)
-					return@flatMap apiClient.getRepositories(githubUser.repos_url, auth)
+					user -> apiClient.getRepositories(user.repos_url, auth)
 				}
 				.map { list -> list.map { it.full_name } }
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe({ list ->
-					run {
-						showProgress(false)
-						showRepositories(this@LoginActivity, list)
-					}
-				},
-				{
-					showProgress(false)
-					Log.e("TAG", "Failed to show repos", it)
-				})*/
+				.doFinally { showProgress(false) }
+				.subscribe(
+						{ list -> showRepositories(this@LoginActivity, list) },
+						{ error -> Log.e("TAG", "Failed to show repos", error) }
+				)
+	}
+
+	private fun attemptLoginSuspending() {
+		val login = email.text.toString()
+		val pass = password.text.toString()
+		val apiClient = SuspendingApiClient.SuspendingApiClientImpl()
+		launch(UI) {
+			showProgress(true)
+			val auth = BasicAuthorization(login, pass)
+			try {
+				val userInfo = async { apiClient.login(auth) }.await()
+				val repoUrl = userInfo!!.repos_url
+				val list = async { apiClient.getRepositories(repoUrl, auth) }.await()
+				showRepositories(this@LoginActivity, list!!.map { it -> it.full_name })
+			} catch (e: RuntimeException) {
+				Toast.makeText(this@LoginActivity, e.message, LENGTH_LONG).show()
+			} finally {
+				showProgress(false)
+			}
+		}
 	}
 
 	private fun attemptLogin() {
@@ -85,6 +88,9 @@ class LoginActivity : AppCompatActivity() {
 			val auth = BasicAuthorization(login, pass)
 			try {
 				val userInfo = apiClient.login(auth).await()
+				if (!isActive) {
+					return@launch
+				}
 				val repoUrl = userInfo!!.repos_url
 				val list = apiClient.getRepositories(repoUrl, auth).await()
 				showRepositories(this@LoginActivity, list!!.map { it -> it.full_name })

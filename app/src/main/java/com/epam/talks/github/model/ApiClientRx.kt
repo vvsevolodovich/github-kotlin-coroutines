@@ -38,6 +38,9 @@ interface ApiClientRx {
 
 		override fun getRepositories(reposUrl: String, auth: Authorization): Single<List<GithubRepository>> {
 			return Single.fromCallable({
+				if (true) {
+					throw RuntimeException("Hello, exception!")
+				}
 				(get(reposUrl, auth = auth).jsonArray).toRepos()
 			})
 		}

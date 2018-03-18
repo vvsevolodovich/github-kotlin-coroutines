@@ -13,28 +13,25 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 
-class ApiClientImplTest {
+class SuspendingApiClientImplTest {
 
 	private val loginJson = "{ \"login\": \"login\", \"id\": 1, \"repos_url\": \"url\", \"name\": \"name\" }"
 
 	@Test
-	fun login() {
-		val apiClientImpl = ApiClient.ApiClientImpl()
+	fun login() = runBlocking {
+		val apiClientImpl = SuspendingApiClient.SuspendingApiClientImpl()
 		val genericResponse = mockLoginResponse()
 
 		staticMockk("khttp.KHttp").use {
 			every { get("https://api.github.com/user", auth = any()) } returns genericResponse
 
-			runBlocking {
-				val githubUser =
-						apiClientImpl
-							.login(BasicAuthorization("login", "pass"))
-							.await()
+			val githubUser =
+					apiClientImpl
+						.login(BasicAuthorization("login", "pass"))
 
-				assertNotNull(githubUser)
-				assertEquals("name", githubUser.name)
-				assertEquals("url", githubUser.repos_url)
-			}
+			assertNotNull(githubUser)
+			assertEquals("name", githubUser.name)
+			assertEquals("url", githubUser.repos_url)
 		}
 	}
 
