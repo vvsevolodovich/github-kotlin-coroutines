@@ -7,6 +7,8 @@
 	
 	<TextView
 		a:layout_weight="1"
+		a:textColor="#000"
+		a:textSize="20sp"
 		a:id="@+id/repoName"
 		a:layout_width="match_parent"
 		a:layout_height="32dp"

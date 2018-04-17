@@ -7,6 +7,7 @@ import khttp.structures.authorization.Authorization
 
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
+import java.util.*
 
 interface ApiClient {
 
@@ -17,10 +18,14 @@ interface ApiClient {
 	class ApiClientImpl : ApiClient {
 
 		override fun searchRepositories(query: String): Deferred<List<GithubRepository>> = async {
-			get("https://api.github.com/search/repositories?q=${query}")
+			val jsonObject = get("https://api.github.com/search/repositories?q=${query}")
 					.jsonObject
-					.getJSONArray("items")
-					.toRepos()
+			if (jsonObject.has("items")) {
+				return@async jsonObject
+						.getJSONArray("items")
+						.toRepos()
+			}
+			return@async ArrayList<GithubRepository>()
 		}
 
 		override fun login(auth: Authorization): Deferred<GithubUser> = async {

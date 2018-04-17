@@ -33,8 +33,8 @@ class LoginActivity : AppCompatActivity() {
 		})
 
 		email_sign_in_button.setOnClickListener {
-			//attemptLogin()
-			attemptLoginRx()
+			attemptLogin()
+			//attemptLoginRx()
 		}
 	}
 
