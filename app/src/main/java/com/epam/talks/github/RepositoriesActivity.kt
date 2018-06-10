@@ -44,10 +44,9 @@ class RepositoriesActivity : AppCompatActivity() {
 		val apiClient = ApiClient.ApiClientImpl()
 
 		launch(UI) {
-			broadcast.consumeEach {
+			broadcast.consumeEach { query ->
 				delay(300)
-				Log.d("TAG", "Query = ${it}")
-				val query = it
+				Log.d("TAG", "Query = ${query}")
 				val foundRepositories = apiClient.searchRepositories(query).await()
 				repos.adapter = ReposAdapter(
 									foundRepositories.map { it.full_name },
