@@ -7,7 +7,7 @@ import io.mockk.use
 import khttp.get
 import khttp.responses.GenericResponse
 import khttp.structures.authorization.BasicAuthorization
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull

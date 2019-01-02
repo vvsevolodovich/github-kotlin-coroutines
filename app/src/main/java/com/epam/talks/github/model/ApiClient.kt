@@ -4,18 +4,20 @@ import com.epam.talks.github.GithubRepository
 import com.epam.talks.github.GithubUser
 import khttp.get
 import khttp.structures.authorization.Authorization
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.async
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
-interface ApiClient {
+interface ApiClient: CoroutineScope {
 
 	fun login(auth: Authorization) : Deferred<GithubUser>
 	fun getRepositories(reposUrl: String, auth: Authorization) : Deferred<List<GithubRepository>>
 	fun searchRepositories(searchQuery: String) : Deferred<List<GithubRepository>>
 
-	class ApiClientImpl : ApiClient {
+	class ApiClientImpl(override val coroutineContext: CoroutineContext) : ApiClient {
 
 		override fun searchRepositories(query: String): Deferred<List<GithubRepository>> = async {
 			val jsonObject = get("https://api.github.com/search/repositories?q=${query}")

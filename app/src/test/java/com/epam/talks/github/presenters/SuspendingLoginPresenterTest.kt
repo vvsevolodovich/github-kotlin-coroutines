@@ -7,10 +7,8 @@ import com.epam.talks.github.model.SuspendingApiClient
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 import java.util.*
@@ -26,7 +24,7 @@ class SuspendingLoginPresenterTest {
 		coEvery { apiClient.login(any()) } returns githubUser
 		coEvery { apiClient.getRepositories(any(), any()) } returns Arrays.asList(repositories)
 
-		val loginPresenterImpl = SuspendingLoginPresenterImpl(apiClient, CommonPool)
+		val loginPresenterImpl = SuspendingLoginPresenterImpl(apiClient, newSingleThreadContext("testPoolSuspending"))
 		runBlocking {
 			val repos = loginPresenterImpl.doLogin("login", "password")
 			assertNotNull(repos)

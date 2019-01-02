@@ -7,7 +7,8 @@ import io.mockk.use
 import khttp.get
 import khttp.responses.GenericResponse
 import khttp.structures.authorization.BasicAuthorization
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -19,7 +20,7 @@ class ApiClientImplTest {
 
 	@Test
 	fun login() {
-		val apiClientImpl = ApiClient.ApiClientImpl()
+		val apiClientImpl = ApiClient.ApiClientImpl(newSingleThreadContext("testPool"))
 		val genericResponse = mockLoginResponse()
 
 		staticMockk("khttp.KHttp").use {

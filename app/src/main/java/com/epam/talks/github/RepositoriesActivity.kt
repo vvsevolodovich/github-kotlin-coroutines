@@ -18,21 +18,22 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_repositories.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
-import kotlinx.coroutines.experimental.channels.consume
-import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.reactive.publish
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
+import kotlinx.coroutines.channels.consumeEach
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
 
 
-class RepositoriesActivity : AppCompatActivity() {
+class RepositoriesActivity : AppCompatActivity(), CoroutineScope {
+
+	override val coroutineContext: CoroutineContext
+		get() = Dispatchers.Main
 
 	var publishSubject: PublishSubject<String> = PublishSubject.create()
 	val broadcast = ConflatedBroadcastChannel<String>()
 
+	@UseExperimental(ObsoleteCoroutinesApi::class)
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(R.layout.activity_repositories)
@@ -41,9 +42,9 @@ class RepositoriesActivity : AppCompatActivity() {
 		repos.adapter = ReposAdapter(ArrayList(reposNames), this@RepositoriesActivity)
 
 		val apiClientRxImpl = ApiClientRx.ApiClientRxImpl()
-		val apiClient = ApiClient.ApiClientImpl()
+		val apiClient = ApiClient.ApiClientImpl(coroutineContext)
 
-		launch(UI) {
+		launch {
 			broadcast.consumeEach { query ->
 				delay(300)
 				Log.d("TAG", "Query = ${query}")
@@ -60,11 +61,11 @@ class RepositoriesActivity : AppCompatActivity() {
 				.switchMap { searchQuery -> apiClientRxImpl.searchRepositories(searchQuery) }
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe({
+				.subscribe {
 					repos.adapter = ReposAdapter(
-										it.map { it.full_name },
-								this@RepositoriesActivity)
-				})
+							it.map { it.full_name },
+							this@RepositoriesActivity)
+				}
 
 		searchQuery.addTextChangedListener(object: TextWatcher {
 			override fun afterTextChanged(s: Editable?) {

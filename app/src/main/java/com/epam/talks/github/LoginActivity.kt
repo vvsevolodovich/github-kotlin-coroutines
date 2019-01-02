@@ -2,24 +2,29 @@ package com.epam.talks.github
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import com.epam.talks.github.model.ApiClient
-import com.epam.talks.github.model.ApiClientRx
 import com.epam.talks.github.model.SuspendingApiClient
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import com.epam.talks.github.presenters.LoginPresenter
+import com.epam.talks.github.presenters.SuspendingLoginPresenterImpl
 import khttp.structures.authorization.BasicAuthorization
 import kotlinx.android.synthetic.main.activity_login.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : AppCompatActivity(), CoroutineScope {
+
+	override val coroutineContext: CoroutineContext
+				get() = Dispatchers.Main
+
+	val presenter: LoginPresenter = SuspendingLoginPresenterImpl(SuspendingApiClient.SuspendingApiClientImpl())
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -34,56 +39,24 @@ class LoginActivity : AppCompatActivity() {
 
 		email_sign_in_button.setOnClickListener {
 			attemptLogin()
-			//attemptLoginRx()
 		}
-	}
-
-	private fun attemptLoginRx() {
-		val login = email.text.toString()
-		val pass = password.text.toString()
-
-		val auth = BasicAuthorization(login, pass)
-		val apiClient = ApiClientRx.ApiClientRxImpl()
-		showProgress(true)
-		apiClient.login(auth)
-				.flatMap {
-					user -> apiClient.getRepositories(user.repos_url, auth)
-				}
-				.map { list -> list.map { it.full_name } }
-				.subscribeOn(Schedulers.io())
-				.observeOn(AndroidSchedulers.mainThread())
-				.doFinally { showProgress(false) }
-				.subscribe(
-						{ list -> showRepositories(this@LoginActivity, list) },
-						{ error -> Log.e("TAG", "Failed to show repos", error) }
-				)
 	}
 
 	private fun attemptLoginSuspending() {
 		val login = email.text.toString()
 		val pass = password.text.toString()
 		val apiClient = SuspendingApiClient.SuspendingApiClientImpl()
-		launch(UI) {
-			showProgress(true)
-			val auth = BasicAuthorization(login, pass)
-			try {
-				val userInfo = async { apiClient.login(auth) }.await()
-				val repoUrl = userInfo!!.repos_url
-				val list = async { apiClient.getRepositories(repoUrl, auth) }.await()
-				showRepositories(this@LoginActivity, list!!.map { it -> it.full_name })
-			} catch (e: RuntimeException) {
-				Toast.makeText(this@LoginActivity, e.message, LENGTH_LONG).show()
-			} finally {
-				showProgress(false)
-			}
+		launch {
+			val repositoriesList = presenter.doLogin(login, pass)
+			showRepositories(this@LoginActivity, repositoriesList)
 		}
 	}
 
 	private fun attemptLogin() {
 		val login = email.text.toString()
 		val pass = password.text.toString()
-		val apiClient = ApiClient.ApiClientImpl()
-		launch(UI) {
+		val apiClient = ApiClient.ApiClientImpl(coroutineContext)
+		launch {
 			showProgress(true)
 			val auth = BasicAuthorization(login, pass)
 			try {
@@ -93,7 +66,7 @@ class LoginActivity : AppCompatActivity() {
 				}
 				val repoUrl = userInfo!!.repos_url
 				val list = apiClient.getRepositories(repoUrl, auth).await()
-				showRepositories(this@LoginActivity, list!!.map { it -> it.full_name })
+				showRepositories(this@LoginActivity, list.map { it -> it.full_name })
 			} catch (e: RuntimeException) {
 				Toast.makeText(this@LoginActivity, e.message, LENGTH_LONG).show()
 			} finally {
