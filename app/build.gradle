@@ -3,13 +3,13 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-	compileSdkVersion 26
-	buildToolsVersion "27.0.3"
+	compileSdkVersion 28
+	buildToolsVersion "29.0.1"
 
 	defaultConfig {
 		applicationId "com.epam.talks.github"
 		minSdkVersion 21
-		targetSdkVersion 26
+		targetSdkVersion 28
 		versionCode 2
 		versionName "2.0"
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -19,6 +19,15 @@ android {
 			minifyEnabled false
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 		}
+	}
+	packagingOptions {
+		exclude 'META-INF/AL2.0'
+		exclude 'META-INF/LGPL2.1'
+	}
+
+	lintOptions {
+		checkReleaseBuilds false
+		//abortOnError false
 	}
 }
 
@@ -32,11 +41,15 @@ dependencies {
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
 	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-reactive:$coroutines_version"
-	implementation "com.android.support:recyclerview-v7:26.1.0"
-	implementation "khttp:khttp:0.1.0"
+	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version"
+	implementation "com.android.support:recyclerview-v7:28.0.0"
+	implementation 'com.github.kittinunf.fuel:fuel:2.2.3'
+	implementation 'com.github.kittinunf.fuel:fuel-android:2.2.3'
+	implementation 'com.github.kittinunf.fuel:fuel-coroutines:2.2.3'
+	implementation 'com.github.kittinunf.fuel:fuel-json:2.2.3'
 
-	implementation 'com.android.support:appcompat-v7:26.1.0'
-	implementation 'com.android.support:design:26.1.0'
+	implementation 'com.android.support:appcompat-v7:28.0.0'
+	implementation 'com.android.support:design:28.0.0'
 
 	implementation 'com.android.support.constraint:constraint-layout:1.0.2'
 	testImplementation 'junit:junit:4.12'

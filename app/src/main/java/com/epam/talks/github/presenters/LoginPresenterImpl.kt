@@ -1,8 +1,7 @@
 package com.epam.talks.github.presenters
 
-import android.app.Activity
 import com.epam.talks.github.model.ApiClient
-import khttp.structures.authorization.BasicAuthorization
+import com.epam.talks.github.model.Authorization
 
 class LoginPresenterImpl(val apiClient: ApiClient) : LoginPresenter {
 
@@ -11,7 +10,7 @@ class LoginPresenterImpl(val apiClient: ApiClient) : LoginPresenter {
 	}
 
 	override suspend fun doLogin(login: String, pass: String): List<String> {
-		val auth = BasicAuthorization(login, pass)
+		val auth = Authorization(login, pass)
 		val userInfo = apiClient.login(auth).await()
 		val repoUrl = userInfo.repos_url
 		val list = apiClient.getRepositories(repoUrl, auth).await()

@@ -8,10 +8,10 @@ import android.widget.TextView
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import com.epam.talks.github.model.ApiClient
+import com.epam.talks.github.model.Authorization
 import com.epam.talks.github.model.SuspendingApiClient
 import com.epam.talks.github.presenters.LoginPresenter
 import com.epam.talks.github.presenters.SuspendingLoginPresenterImpl
-import khttp.structures.authorization.BasicAuthorization
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,7 +58,7 @@ class LoginActivity : AppCompatActivity(), CoroutineScope {
 		val apiClient = ApiClient.ApiClientImpl(coroutineContext)
 		launch {
 			showProgress(true)
-			val auth = BasicAuthorization(login, pass)
+			val auth = Authorization(login, pass)
 			try {
 				val userInfo = apiClient.login(auth).await()
 				if (!isActive) {

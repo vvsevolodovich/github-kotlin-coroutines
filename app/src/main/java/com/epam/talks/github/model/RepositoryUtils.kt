@@ -1,8 +1,14 @@
 package com.epam.talks.github.model
 
 import com.epam.talks.github.GithubRepository
+import com.github.kittinunf.fuel.json.FuelJson
 import org.json.JSONArray
 import java.util.ArrayList
+
+fun FuelJson.toRepos(): ArrayList<GithubRepository> {
+	val array = this.array()
+	return array.toRepos();
+}
 
 fun JSONArray.toRepos(): ArrayList<GithubRepository> {
 	val jsonArray = this
